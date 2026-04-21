@@ -1,0 +1,1 @@
+import{o as t}from"./index-DSqrYlWV.js";const s=()=>t.get("/payments/config/"),o=()=>t.get("/payments/connect/status/"),e=()=>t.post("/payments/connect/onboard/"),a=()=>t.post("/payments/connect/refresh/"),c=()=>t.post("/payments/connect/dashboard/");export{o as a,s as b,c as g,a as r,e as s};

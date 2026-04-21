@@ -1,0 +1,1 @@
+import{o as t}from"./index-DSqrYlWV.js";const l=o=>t.post(`/follow/${o}/`),e=o=>t.get(`/users/${o}/follow-status/`),g=o=>t.get(`/users/${o}/followers/`),a=o=>t.get(`/users/${o}/following/`),w=()=>t.get("/follows/activity/"),r=o=>t.get(`/users/${o}/mutual-followers/`);export{e as a,w as b,g as c,a as d,r as g,l as t};
