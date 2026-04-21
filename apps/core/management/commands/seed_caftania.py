@@ -74,45 +74,62 @@ class Command(BaseCommand):
             )
             counts['marketplace'] = 1
 
-            # Loueuses: user + VenueProfile
+            # Loueuses: user + VenueProfile (JSON uses `id` like "loueuse-001")
+            loueuse_user_by_id = {}
             for row in loueuses:
+                username = row.get('username') or row['id']
                 user, _ = User.objects.update_or_create(
-                    username=row['username'],
+                    username=username,
                     defaults=dict(
                         email=row.get('email', ''),
+                        first_name=row.get('first_name', ''),
+                        last_name=row.get('last_name', ''),
                         role='venue',
                         bio=row.get('bio', ''),
                         marketplace=marketplace,
-                        display_mode='real',
+                        display_mode=row.get('display_mode', 'real'),
+                        pseudonym=row.get('pseudonym', ''),
+                        is_kyc_verified=row.get('is_kyc_verified', False),
+                        care_score=row.get('care_score', 5.0),
                     ),
                 )
                 VenueProfile.objects.update_or_create(
                     user=user,
                     defaults=dict(
-                        organization_name=row.get('organization_name', row['username']),
+                        organization_name=row.get('organization_name',
+                                                  row.get('pseudonym') or username),
                         organization_type='other',
-                        city=row.get('city', ''),
-                        country=row.get('country', 'BE'),
+                        city=row.get('venue_city', row.get('city', '')),
+                        country=row.get('venue_country', 'BE'),
                         description=row.get('bio', ''),
                     ),
                 )
+                loueuse_user_by_id[row['id']] = user
                 counts['loueuses'] += 1
 
             # Clientes: user + CreatorProfile
             for row in clientes:
+                username = row.get('username') or row['id']
                 user, _ = User.objects.update_or_create(
-                    username=row['username'],
+                    username=username,
                     defaults=dict(
                         email=row.get('email', ''),
+                        first_name=row.get('first_name', ''),
+                        last_name=row.get('last_name', ''),
                         role='creator',
+                        bio=row.get('bio', ''),
                         marketplace=marketplace,
-                        display_mode='real',
+                        display_mode=row.get('display_mode', 'real'),
+                        pseudonym=row.get('pseudonym', ''),
+                        is_kyc_verified=row.get('is_kyc_verified', False),
+                        care_score=row.get('care_score', 5.0),
                     ),
                 )
                 CreatorProfile.objects.update_or_create(
                     user=user,
                     defaults=dict(
-                        display_name=row.get('display_name', row['username']),
+                        display_name=row.get('display_name',
+                                             row.get('pseudonym') or username),
                         specialty='other',
                         city=row.get('city', ''),
                         country=row.get('country', 'BE'),
@@ -122,10 +139,12 @@ class Command(BaseCommand):
 
             # Caftans (Space)
             for row in caftans:
-                owner_user = User.objects.filter(username=row['owner_username']).first()
+                owner_ref = row.get('owner_username') or row.get('owner_id')
+                owner_user = (loueuse_user_by_id.get(owner_ref)
+                              or User.objects.filter(username=owner_ref).first())
                 if not owner_user or not hasattr(owner_user, 'venue_profile'):
                     self.stdout.write(self.style.WARNING(
-                        f"skip caftan {row['title']}: owner {row['owner_username']} has no VenueProfile"))
+                        f"skip caftan {row['title']}: owner {owner_ref} has no VenueProfile"))
                     continue
                 slug = f"{slugify(row['title'])}-{row['qr_code'].lower()}"
                 Space.objects.update_or_create(
@@ -137,7 +156,11 @@ class Command(BaseCommand):
                         slug=slug,
                         description=row.get('description', ''),
                         space_type='other',
-                        category=row.get('category', 'caftan'),
+                        category=row.get('category', row.get('space_type', 'caftan')),
+                        weekly_rate=row.get('weekly_rate'),
+                        rental_count=row.get('rental_count', 0),
+                        is_featured=row.get('is_featured', False),
+                        tags=row.get('tags', []),
                         size=row.get('size', ''),
                         color=row.get('color', ''),
                         brand=row.get('brand', ''),
@@ -157,20 +180,27 @@ class Command(BaseCommand):
             counts['reviews_skipped'] = len(reviews)
 
             # Events
+            from datetime import datetime
             for row in events:
-                host = User.objects.filter(username=row['host_username']).first()
+                host_ref = row.get('host_username') or row.get('organizer_id')
+                host = (loueuse_user_by_id.get(host_ref)
+                        or User.objects.filter(username=host_ref).first())
                 if not host:
                     continue
-                starts = timezone.now() + timezone.timedelta(days=30)
+                start_str = row.get('start_datetime')
+                try:
+                    starts = datetime.fromisoformat(start_str.replace('Z', '+00:00')) if start_str else timezone.now() + timezone.timedelta(days=30)
+                except Exception:
+                    starts = timezone.now() + timezone.timedelta(days=30)
                 Event.objects.update_or_create(
-                    slug=slugify(row['title'])[:200],
+                    slug=row.get('slug') or slugify(row['title'])[:200],
                     defaults=dict(
                         host=host,
                         title=row['title'],
                         description=row.get('description', ''),
                         starts_at=starts,
-                        location_text=f"{row.get('city','')}, {row.get('country','')}",
-                        is_public=True,
+                        location_text=f"{row.get('venue_name','')}, {row.get('venue_address','')}".strip(', '),
+                        is_public=not row.get('is_private', False),
                     ),
                 )
                 counts['events'] += 1
