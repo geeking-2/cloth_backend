@@ -23,6 +23,7 @@ from apps.core.models import Marketplace
 from apps.accounts.models import User, VenueProfile, CreatorProfile
 from apps.spaces.models import Space
 from apps.events.models import Event
+from apps.feed.models import Post, Story
 
 
 SEED_DIR = Path(r'C:\Users\User\Desktop\caftania\caftania_frontend\seed')
@@ -53,10 +54,13 @@ class Command(BaseCommand):
         caftans = load('caftans.json')
         reviews = load('reviews.json')
         events = load('events.json')
+        posts = load('posts.json')
+        stories = load('stories.json')
 
         counts = {
             'marketplace': 0, 'loueuses': 0, 'clientes': 0,
             'caftans': 0, 'reviews_skipped': 0, 'events': 0,
+            'posts': 0, 'stories': 0,
         }
 
         sid = transaction.savepoint() if not dry else None
@@ -91,6 +95,12 @@ class Command(BaseCommand):
                         pseudonym=row.get('pseudonym', ''),
                         is_kyc_verified=row.get('is_kyc_verified', False),
                         care_score=row.get('care_score', 5.0),
+                        is_pro=row.get('is_pro', False),
+                        pro_tier=row.get('pro_tier', 'none'),
+                        shop_name=row.get('shop_name', ''),
+                        shop_city=row.get('venue_city', row.get('city', '')),
+                        has_physical_shop=row.get('has_physical_shop', False),
+                        pro_featured=row.get('pro_featured', False),
                     ),
                 )
                 VenueProfile.objects.update_or_create(
@@ -204,6 +214,70 @@ class Command(BaseCommand):
                     ),
                 )
                 counts['events'] += 1
+
+            # Posts (feed)
+            from datetime import datetime
+            item_by_sid = {}  # seed id (e.g. "caftan-001") -> Space
+            for row in caftans:
+                sp = Space.objects.filter(qr_code=row['qr_code']).first()
+                if sp:
+                    item_by_sid[row['id']] = sp
+            cliente_user_by_id = {c['id']: User.objects.filter(
+                username=c.get('username') or c['id']).first() for c in clientes}
+            user_by_sid = {**loueuse_user_by_id, **cliente_user_by_id}
+
+            for row in posts:
+                author = user_by_sid.get(row.get('author_id'))
+                if not author:
+                    continue
+                item = item_by_sid.get(row.get('item_id')) if row.get('item_id') else None
+                created_str = row.get('created_at')
+                try:
+                    created_at = datetime.fromisoformat(created_str.replace('Z', '+00:00')) if created_str else None
+                except Exception:
+                    created_at = None
+                post_obj, _ = Post.objects.update_or_create(
+                    author=author,
+                    caption=row.get('caption', ''),
+                    defaults=dict(
+                        item=item,
+                        marketplace=marketplace,
+                        location_tag=row.get('location_tag', ''),
+                        event_type=row.get('event_type', ''),
+                        media_urls=row.get('media_urls', []),
+                        has_face_blur=row.get('has_face_blur', False),
+                        has_background_blur=row.get('has_background_blur', False),
+                        is_anonymous=row.get('is_anonymous', False),
+                        likes_count=row.get('likes_count', 0),
+                        comments_count=row.get('comments_count', 0),
+                        item_clicks_count=row.get('item_clicks_count', 0),
+                    ),
+                )
+                if created_at:
+                    Post.objects.filter(pk=post_obj.pk).update(created_at=created_at)
+                counts['posts'] += 1
+
+            # Stories (24h expiry from now)
+            for row in stories:
+                author = user_by_sid.get(row.get('author_id'))
+                if not author:
+                    continue
+                item = item_by_sid.get(row.get('item_id')) if row.get('item_id') else None
+                Story.objects.update_or_create(
+                    author=author,
+                    media_url=row['media_url'],
+                    defaults=dict(
+                        item=item,
+                        marketplace=marketplace,
+                        media_type=row.get('media_type', 'image'),
+                        caption=row.get('caption', ''),
+                        has_face_blur=row.get('has_face_blur', False),
+                        is_anonymous=row.get('is_anonymous', False),
+                        views_count=row.get('views_count', 0),
+                        expires_at=timezone.now() + timezone.timedelta(hours=24),
+                    ),
+                )
+                counts['stories'] += 1
 
             if dry:
                 transaction.savepoint_rollback(sid) if sid else None

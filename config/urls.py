@@ -88,6 +88,7 @@ urlpatterns = [
     path('api/', include('apps.tickets.urls')),
     path('api/payments/', include('apps.payments.urls')),
     path('api/', include('apps.handovers.urls')),
+    path('api/feed/', include('apps.feed.urls')),
 ]
 
 if settings.DEBUG:

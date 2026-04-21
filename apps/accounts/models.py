@@ -30,6 +30,22 @@ class User(AbstractUser):
     is_private_circle = models.BooleanField(default=False)
     stripe_customer_id = models.CharField(max_length=80, blank=True, default='')
     stripe_account_id = models.CharField(max_length=80, blank=True, default='')
+    # Pro tier — negafat & physical rental shops
+    PRO_TIER_CHOICES = [
+        ('none', 'Particulier'),
+        ('negafa', 'Négafa indépendante'),
+        ('atelier', 'Atelier / Créatrice pro'),
+        ('boutique', 'Boutique physique'),
+        ('partner', 'Partenaire officiel'),
+    ]
+    is_pro = models.BooleanField(default=False)
+    pro_tier = models.CharField(max_length=20, choices=PRO_TIER_CHOICES, default='none')
+    shop_name = models.CharField(max_length=200, blank=True, default='')
+    shop_address = models.CharField(max_length=500, blank=True, default='')
+    shop_city = models.CharField(max_length=100, blank=True, default='')
+    has_physical_shop = models.BooleanField(default=False)
+    pro_featured = models.BooleanField(default=False)  # paid spotlight
+    vat_number = models.CharField(max_length=40, blank=True, default='')
 
     def __str__(self):
         return f"{self.username} ({self.role})"

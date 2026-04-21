@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'apps.messaging',
     'apps.tickets',
     'apps.seed',
+    'apps.feed',
 ]
 
 MIDDLEWARE = [
