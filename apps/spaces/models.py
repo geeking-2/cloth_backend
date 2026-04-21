@@ -14,6 +14,30 @@ class Space(models.Model):
         ('entire_venue', 'Entire Venue'),
         ('other', 'Other'),
     ]
+    # Caftania taxonomy — a `Space` now represents a garment (caftan, takchita, …)
+    CATEGORY_CHOICES = [
+        ('caftan', 'Caftan'),
+        ('takchita', 'Takchita'),
+        ('jabador', 'Jabador'),
+        ('jellaba', 'Jellaba'),
+        ('gandoura', 'Gandoura'),
+        ('accessoire', 'Accessoire'),
+    ]
+    marketplace = models.ForeignKey(
+        'core.Marketplace', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='spaces',
+    )
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, blank=True, default='')
+    size = models.CharField(max_length=20, blank=True, default='')
+    color = models.CharField(max_length=40, blank=True, default='')
+    brand = models.CharField(max_length=120, blank=True, default='')
+    occasion_tags = models.JSONField(default=list, blank=True)
+    available_for_rent = models.BooleanField(default=True)
+    available_for_sale = models.BooleanField(default=False)
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    deposit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    rental_count = models.PositiveIntegerField(default=0)
+    qr_code = models.CharField(max_length=64, unique=True, null=True, blank=True)
     venue = models.ForeignKey(
         'accounts.VenueProfile', on_delete=models.CASCADE, related_name='spaces'
     )

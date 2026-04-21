@@ -7,12 +7,29 @@ from django.utils import timezone
 
 class User(AbstractUser):
     ROLE_CHOICES = [('venue', 'Venue'), ('creator', 'Creator'), ('audience', 'Audience')]
+    DISPLAY_MODE_CHOICES = [
+        ('real', 'Real name'),
+        ('pseudo', 'Pseudonym'),
+        ('anonymous', 'Anonymous'),
+    ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     avatar = models.URLField(blank=True, default='')
     bio = models.TextField(blank=True, default='')
     phone = models.CharField(max_length=20, blank=True, default='')
     website = models.URLField(blank=True, default='')
     is_verified = models.BooleanField(default=False)
+    # Caftania multi-tenant + privacy extensions
+    marketplace = models.ForeignKey(
+        'core.Marketplace', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='users',
+    )
+    display_mode = models.CharField(max_length=10, choices=DISPLAY_MODE_CHOICES, default='real')
+    pseudonym = models.CharField(max_length=80, blank=True, default='')
+    care_score = models.FloatField(default=5.0)
+    is_kyc_verified = models.BooleanField(default=False)
+    is_private_circle = models.BooleanField(default=False)
+    stripe_customer_id = models.CharField(max_length=80, blank=True, default='')
+    stripe_account_id = models.CharField(max_length=80, blank=True, default='')
 
     def __str__(self):
         return f"{self.username} ({self.role})"
