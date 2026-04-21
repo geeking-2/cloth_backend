@@ -23,8 +23,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     # Local apps
+    'apps.core',
     'apps.accounts',
     'apps.spaces',
+    'apps.handovers',
     'apps.proposals',
     'apps.bookings',
     'apps.reviews',
@@ -46,6 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.core.middleware.MarketplaceMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
