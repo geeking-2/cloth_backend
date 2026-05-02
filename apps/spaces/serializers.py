@@ -35,9 +35,13 @@ class SpaceListSerializer(serializers.ModelSerializer):
         model = Space
         fields = [
             'id', 'title', 'slug', 'space_type', 'area_sqft', 'daily_rate',
-            'currency', 'is_featured', 'venue_name', 'venue_city', 'venue_country',
-            'primary_image', 'image_urls', 'rating', 'review_count', 'latitude', 'longitude',
-            'tags', 'created_at',
+            'weekly_rate', 'currency', 'is_featured', 'venue_name', 'venue_city',
+            'venue_country', 'primary_image', 'image_urls', 'rating', 'review_count',
+            'latitude', 'longitude', 'tags', 'created_at',
+            # Caftania-specific fields
+            'category', 'size', 'color', 'brand', 'occasion_tags',
+            'available_for_rent', 'available_for_sale', 'sale_price',
+            'deposit_amount', 'rental_count', 'qr_code',
         ]
 
     def get_primary_image(self, obj):
@@ -104,6 +108,10 @@ class SpaceDetailSerializer(serializers.ModelSerializer):
             'floor_plan_url', 'video_url', 'venue', 'images', 'availabilities',
             'attachments', 'venue_spaces', 'rating', 'review_count',
             'created_at', 'updated_at',
+            # Caftania-specific fields
+            'category', 'size', 'color', 'brand', 'occasion_tags',
+            'available_for_rent', 'available_for_sale', 'sale_price',
+            'deposit_amount', 'rental_count', 'qr_code',
         ]
 
     def get_venue_spaces(self, obj):
@@ -139,6 +147,10 @@ class SpaceCreateUpdateSerializer(serializers.ModelSerializer):
             'has_sound_system', 'has_blackout_capability', 'has_climate_control',
             'technical_notes', 'daily_rate', 'weekly_rate', 'monthly_rate',
             'currency', 'is_active', 'tags', 'video_url', 'image_urls',
+            # Caftania-specific fields (loueuse can edit)
+            'category', 'size', 'color', 'brand', 'occasion_tags',
+            'available_for_rent', 'available_for_sale', 'sale_price',
+            'deposit_amount', 'qr_code',
         ]
 
     def create(self, validated_data):
