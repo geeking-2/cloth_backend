@@ -89,6 +89,7 @@ urlpatterns = [
     path('api/payments/', include('apps.payments.urls')),
     path('api/', include('apps.handovers.urls')),
     path('api/feed/', include('apps.feed.urls')),
+    path('api/uploads/', include('apps.uploads.urls')),
 ]
 
 if settings.DEBUG:

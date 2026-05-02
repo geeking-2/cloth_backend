@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'apps.tickets',
     'apps.seed',
     'apps.feed',
+    'apps.uploads',
 ]
 
 MIDDLEWARE = [
