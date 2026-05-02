@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'apps.seed',
     'apps.feed',
     'apps.uploads',
+    'apps.condition',
 ]
 
 MIDDLEWARE = [

@@ -16,6 +16,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = [
             'id', 'booking', 'reviewer', 'reviewee', 'direction', 'rating', 'comment',
+            'criteria', 'is_anonymous',
             'reviewer_name', 'reviewer_avatar', 'reviewer_role', 'reviewee_name',
             'space_title', 'space_slug', 'created_at',
         ]
