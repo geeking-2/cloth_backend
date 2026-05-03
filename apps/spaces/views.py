@@ -37,12 +37,36 @@ class SpaceListCreateView(generics.ListCreateAPIView):
     }
 
     def get_queryset(self):
-        qs = Space.objects.filter(is_active=True).select_related('venue').prefetch_related('images')
+        qs = Space.objects.filter(is_active=True).select_related('venue', 'venue__user').prefetch_related('images')
         qs = qs.annotate(
             rating=Avg('bookings__reviews__rating', filter=Q(bookings__reviews__direction='creator_to_venue')),
             review_count=Count('bookings__reviews', filter=Q(bookings__reviews__direction='creator_to_venue')),
         )
+        # Sponsored loueuses (pro_featured=True) and platform featured items rise to the top.
+        # Tie-broken by recency.
+        qs = qs.order_by('-venue__user__pro_featured', '-is_featured', '-created_at')
         return qs
+
+
+class SponsoredSpacesView(generics.ListAPIView):
+    """Top spotlight section — caftans owned by pro_featured loueuses.
+
+    Used on the homepage 'Boutiques sponsorisées' rail.
+    """
+    serializer_class = SpaceListSerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None
+
+    def get_queryset(self):
+        return (
+            Space.objects.filter(is_active=True, venue__user__pro_featured=True)
+            .select_related('venue', 'venue__user').prefetch_related('images')
+            .annotate(
+                rating=Avg('bookings__reviews__rating', filter=Q(bookings__reviews__direction='creator_to_venue')),
+                review_count=Count('bookings__reviews', filter=Q(bookings__reviews__direction='creator_to_venue')),
+            )
+            .order_by('-is_featured', '-created_at')[:12]
+        )
 
     def get_serializer_class(self):
         if self.request.method == 'POST':

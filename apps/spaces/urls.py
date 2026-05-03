@@ -6,6 +6,7 @@ urlpatterns = [
     path('search/all/', UnifiedSearchView.as_view(), name='unified-search'),
     path('spaces/', views.SpaceListCreateView.as_view(), name='space-list-create'),
     path('spaces/featured/', views.FeaturedSpacesView.as_view(), name='space-featured'),
+    path('spaces/sponsored/', views.SponsoredSpacesView.as_view(), name='space-sponsored'),
     path('spaces/my/', views.VenueSpacesView.as_view(), name='venue-spaces'),
     path('spaces/<slug:slug>/', views.SpaceDetailView.as_view(), name='space-detail'),
     path('spaces/<slug:slug>/images/', views.SpaceImageCreateView.as_view(), name='space-images'),

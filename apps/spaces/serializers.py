@@ -22,6 +22,12 @@ class SpaceListSerializer(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
+    # Loueuse pro flags surfaced for badge display + sponsorship sort
+    venue_is_pro = serializers.BooleanField(source='venue.user.is_pro', read_only=True, default=False)
+    venue_pro_tier = serializers.CharField(source='venue.user.pro_tier', read_only=True, default='none')
+    venue_pro_featured = serializers.BooleanField(source='venue.user.pro_featured', read_only=True, default=False)
+    venue_shop_name = serializers.CharField(source='venue.user.shop_name', read_only=True, default='')
+    venue_has_physical_shop = serializers.BooleanField(source='venue.user.has_physical_shop', read_only=True, default=False)
     latitude = serializers.DecimalField(
         source='venue.latitude', max_digits=9, decimal_places=6, read_only=True
     )
@@ -42,6 +48,9 @@ class SpaceListSerializer(serializers.ModelSerializer):
             'category', 'size', 'color', 'brand', 'occasion_tags',
             'available_for_rent', 'available_for_sale', 'sale_price',
             'deposit_amount', 'rental_count', 'qr_code',
+            # Loueuse pro / sponsorship flags
+            'venue_is_pro', 'venue_pro_tier', 'venue_pro_featured',
+            'venue_shop_name', 'venue_has_physical_shop',
         ]
 
     def get_primary_image(self, obj):
