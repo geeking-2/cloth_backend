@@ -5,9 +5,20 @@ from datetime import timedelta
 
 
 class Post(models.Model):
+    POST_TYPE_CHOICES = [
+        ('community_review', 'Avis communauté'),
+        ('p2p_listing',      'Mise en ligne particulière'),
+        ('p2p_offer',        'Annonce — louer ma pièce'),
+        ('pro_drop',         'Drop boutique pro'),
+        ('pro_event',        'Évènement pro (vide-dressing, ouverture…)'),
+        ('pro_styling',      'Conseil styling pro'),
+        ('other',            'Autre'),
+    ]
+
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
     item = models.ForeignKey('spaces.Space', on_delete=models.SET_NULL, null=True, blank=True, related_name='posts')
     marketplace = models.ForeignKey('core.Marketplace', on_delete=models.SET_NULL, null=True, blank=True)
+    post_type = models.CharField(max_length=20, choices=POST_TYPE_CHOICES, default='community_review')
     caption = models.TextField(blank=True, default='')
     location_tag = models.CharField(max_length=120, blank=True, default='')
     event_type = models.CharField(max_length=40, blank=True, default='')

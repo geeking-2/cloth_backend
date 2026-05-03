@@ -249,6 +249,7 @@ class Command(BaseCommand):
                     defaults=dict(
                         item=item,
                         marketplace=marketplace,
+                        post_type=row.get('post_type', 'community_review'),
                         location_tag=row.get('location_tag', ''),
                         event_type=row.get('event_type', ''),
                         media_urls=row.get('media_urls', []),
