@@ -27,6 +27,7 @@ from apps.feed.models import Post, Story
 
 
 SEED_DIR = Path(r'C:\Users\User\Desktop\caftania\caftania_frontend\seed')
+SEED_PASSWORD = 'caftania2026'  # Demo accounts only — never use in prod.
 
 
 class Command(BaseCommand):
@@ -114,6 +115,9 @@ class Command(BaseCommand):
                         description=row.get('bio', ''),
                     ),
                 )
+                if not user.has_usable_password():
+                    user.set_password(SEED_PASSWORD)
+                    user.save(update_fields=['password'])
                 loueuse_user_by_id[row['id']] = user
                 counts['loueuses'] += 1
 
@@ -145,6 +149,9 @@ class Command(BaseCommand):
                         country=row.get('country', 'BE'),
                     ),
                 )
+                if not user.has_usable_password():
+                    user.set_password(SEED_PASSWORD)
+                    user.save(update_fields=['password'])
                 counts['clientes'] += 1
 
             # Caftans (Space)
